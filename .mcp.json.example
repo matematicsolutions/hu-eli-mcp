@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "hu-eli-mcp": {
+      "command": "hu-eli-mcp",
+      "env": {
+        "HU_ELI_BASE_URL": "https://njt.jog.gov.hu",
+        "HU_ELI_CACHE_DIR": "~/.matematic/cache/hu-eli",
+        "HU_ELI_AUDIT_DIR": "~/.matematic/audit"
+      }
+    }
+  }
+}
