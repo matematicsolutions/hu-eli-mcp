@@ -21,6 +21,7 @@ from mcp.types import ToolAnnotations
 
 from .audit import AuditLogger, hash_input, timer
 from .citations import human_readable_citation, parse_code_table, parse_document_page
+from . import runtime
 from .client import DEFAULT_BASE_URL, HuError, HuNotFoundError, NjtClient
 from .models import DocTypeInfo, DocTypeList, IssuerInfo, IssuerList, Legislation, LegislationText
 
@@ -93,7 +94,7 @@ mcp: FastMCP = FastMCP(name="hu-eli-mcp", instructions=INSTRUCTIONS)
 
 
 def _base_url() -> str:
-    return os.environ.get("HU_ELI_BASE_URL", DEFAULT_BASE_URL).rstrip("/")
+    return os.environ.get("HU_ELI_BASE_URL", runtime.base_url("eli", DEFAULT_BASE_URL)).rstrip("/")
 
 
 def _audit() -> AuditLogger:
