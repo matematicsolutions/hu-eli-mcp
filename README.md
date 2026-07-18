@@ -65,6 +65,25 @@ Register it with your MCP client (see `.mcp.json.example`):
 }
 ```
 
+### Windows 11 ze Smart App Control
+
+Smart App Control blokuje niepodpisane pliki wykonywalne, a `uvx.exe`, `pip.exe`
+i generowany przy instalacji `hu-eli-mcp.exe` podpisane nie sa. `python.exe`
+z python.org jest podpisany przez Python Software Foundation, wiec uruchomienie
+przez modul omija blokade:
+
+```bash
+python -m pip install hu-eli-mcp
+python -m hu_eli_mcp
+```
+
+```json
+{ "mcpServers": { "hu-eli-mcp": { "command": "python", "args": ["-m", "hu_eli_mcp"] } } }
+```
+
+Nie wylaczaj Smart App Control, zeby to obejsc - wylaczenia nie da sie cofnac
+bez ponownej instalacji systemu.
+
 ## Design
 
 - **Public data only.** Read-only against the keyless, official `njt.jog.gov.hu`; nothing is
