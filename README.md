@@ -25,6 +25,7 @@ member state, the same citation contract everywhere.
 | `hu_get_text(doc_type, year, serial, issuer=None)` | The full document HTML content for either an Act or other legislation. |
 | `hu_list_doc_types()` | Valid NJT document-type codes (e.g. `TV`=Act, `R`=decree). |
 | `hu_list_issuers()` | Valid NJT issuer codes (e.g. `Korm`=Government) — note the exact casing matters. |
+| `hu_coverage()` | Declare what this connector covers, when each family was captured, and - explicitly - what it does NOT cover. Every gap carries a fallback. |
 
 Every response carries the **citation contract**:
 
