@@ -47,6 +47,7 @@ There is no headless full-text or title search. Documents must be addressed by a
 
 ## Hard constraints
 
+- **Do not answer past the edge of this corpus** - when a search comes back empty, or the question touches material this connector does not carry, call `hu_coverage` and relay what it says is missing. Absence here is not absence in the law.
 - **eli_uri is a genuine native ELI** - Hungary has published a documented ELI implementation since 2023; this server never constructs a substitute identifier.
 - **No free-text search** - only get-by-known-identifier. An unresolvable identifier (wrong year/serial/issuer/casing) makes NJT redirect to its own search-assist page; this server surfaces that as `not_found` rather than guessing.
 - **Consolidated ("hatalyos") text by default** - the resolved document is the version currently in force; `in_force_date` (if present on the page) states the as-of date NJT itself displays.
