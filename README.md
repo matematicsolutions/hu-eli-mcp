@@ -93,7 +93,7 @@ without reinstalling Windows.
 - **Public data only.** Read-only against the keyless, official `njt.jog.gov.hu`; nothing is
   sent beyond the ELI path being resolved. Honors `robots.txt` (never calls `/search/*`).
 - **Audit log.** Every call appends one JSON line to `~/.matematic/audit/hu-eli-mcp.jsonl`
-  (AI Act art. 12 record-keeping).
+  (record-keeping).
 - **Vendor-neutral.** No LLM provider, no telemetry; own backoff + on-disk cache.
 - **No fabrication.** The ELI, title and citation are parsed from the resolved document page.
   If NJT's markup changes, the connector fails loudly rather than returning stale or invented
