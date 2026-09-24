@@ -1,0 +1,756 @@
+{
+  "package_version": "0.3.3",
+  "tools": {
+    "hu_coverage": {
+      "descriptor": {
+        "annotations": {
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": true,
+          "readOnlyHint": true
+        },
+        "description": "Declare what this connector covers, how it is sourced, and what it does NOT cover.\n\nCall this before telling a user that the law \"does not contain\" something, and whenever\na search comes back empty: the absence may be a gap in this connector rather than in the\nlaw. Every gap carries a fallback saying where to look instead.\n\nReturns:\n    ``Coverage`` with families, an as-of note, and a non-empty list of known gaps.",
+        "inputSchema": {
+          "additionalProperties": false,
+          "properties": {},
+          "type": "object"
+        },
+        "meta": {
+          "fastmcp": {
+            "tags": []
+          }
+        },
+        "name": "hu_coverage",
+        "outputSchema": {
+          "additionalProperties": true,
+          "description": "What this connector covers, how it is sourced, and what it does not cover.",
+          "properties": {
+            "as_of_note": {
+              "description": "States what the dates mean, and what they do not promise.",
+              "type": "string"
+            },
+            "families": {
+              "items": {
+                "additionalProperties": true,
+                "description": "One data family this connector exposes.",
+                "properties": {
+                  "captured_at": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Date this family was last captured (ISO). None when queried live."
+                  },
+                  "live": {
+                    "default": true,
+                    "description": "True when queried live instead of from a snapshot.",
+                    "type": "boolean"
+                  },
+                  "name": {
+                    "description": "Data family, e.g. 'Federal legislation'.",
+                    "type": "string"
+                  },
+                  "source": {
+                    "description": "Official source the data comes from.",
+                    "type": "string"
+                  },
+                  "tool": {
+                    "description": "Tool or tools that reach this family.",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name",
+                  "tool",
+                  "source"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "known_gaps": {
+              "description": "Never empty. An empty list would mean 'not checked', not 'no gaps'.",
+              "items": {
+                "additionalProperties": true,
+                "description": "A known, named hole in this connector's coverage - plus the way around it.",
+                "properties": {
+                  "fallback": {
+                    "description": "Where to go instead.",
+                    "type": "string"
+                  },
+                  "family": {
+                    "description": "Which family the gap belongs to.",
+                    "type": "string"
+                  },
+                  "id": {
+                    "description": "Stable gap identifier.",
+                    "type": "string"
+                  },
+                  "missing": {
+                    "description": "What is NOT available through this connector.",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "family",
+                  "missing",
+                  "fallback"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "status": {
+              "default": "ok",
+              "enum": [
+                "ok",
+                "degraded",
+                "failed"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "as_of_note"
+          ],
+          "type": "object"
+        }
+      },
+      "sha256": "92b59c3323cc6f35021136f06e00c011b3393aeab4824a6e94e52f963b9e8c39"
+    },
+    "hu_get_act": {
+      "descriptor": {
+        "annotations": {
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": true,
+          "readOnlyHint": true
+        },
+        "description": "Fetch metadata for a Hungarian Act (torveny) by its ELI (year + serial).",
+        "inputSchema": {
+          "additionalProperties": false,
+          "properties": {
+            "serial": {
+              "description": "the Act's serial number within that year, e.g. ``\"5\"`` (2013. evi V. torveny\nis Act no. 5 of 2013, the Hungarian Civil Code).",
+              "type": "string"
+            },
+            "year": {
+              "description": "4-digit year, e.g. ``\"2013\"``.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "year",
+            "serial"
+          ],
+          "type": "object"
+        },
+        "meta": {
+          "fastmcp": {
+            "tags": []
+          }
+        },
+        "name": "hu_get_act",
+        "outputSchema": {
+          "additionalProperties": true,
+          "description": "A Hungarian piece of legislation resolved via its ELI URI.",
+          "properties": {
+            "dataset_note": {
+              "default": "Nemzeti Jogszabalytar (NJT) is Hungary's official, free-to-use national legislation database, maintained by MKIFK (Magyar Kozlonykiado es Igazsagugyi Forditokozpont Zrt.) at njt.jog.gov.hu. Hungary publishes a genuine, documented national ELI (European Legislation Identifier) URI scheme since 2023 (see /eli/urisemak). Each ELI URI resolves (HTTP 302) to a server-rendered HTML document page carrying the consolidated (currently-in-force, unless a historical date is requested) text of the act. There is no REST/JSON API and no headless full-text search - the search/browse UI is an AngularJS SPA that requires a session and JavaScript; documents must be addressed by a known ELI (type + year + serial, and an issuer code for non-Act types).",
+              "type": "string"
+            },
+            "doc_type": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "eli_uri": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "human_readable_citation": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "in_force_date": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "issuer": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "serial": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "source_url": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "subtitle": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "title": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "year": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            }
+          },
+          "type": "object"
+        }
+      },
+      "sha256": "e40e7d7b410edb0cd34865c1517e1ee0d28fe837d3b25164d563d2a61e61fa45"
+    },
+    "hu_get_legislation": {
+      "descriptor": {
+        "annotations": {
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": true,
+          "readOnlyHint": true
+        },
+        "description": "Fetch metadata for any Hungarian legislation by its ELI (type + year + issuer + serial).\n\nUse this for anything other than Acts (torveny) - government decrees, ministerial decrees,\netc. Use `hu_list_doc_types` for valid `doc_type` codes and `hu_list_issuers` for valid\n`issuer` codes (issuer codes are case-sensitive, e.g. `Korm` for Government).",
+        "inputSchema": {
+          "additionalProperties": false,
+          "properties": {
+            "doc_type": {
+              "description": "NJT type code, e.g. ``\"R\"`` (rendelet / decree).",
+              "type": "string"
+            },
+            "issuer": {
+              "description": "NJT issuer code, case-sensitive, e.g. ``\"Korm\"`` (Government).",
+              "type": "string"
+            },
+            "serial": {
+              "description": "the document's serial number within that year, e.g. ``\"428\"``.",
+              "type": "string"
+            },
+            "year": {
+              "description": "4-digit year, e.g. ``\"2016\"``.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "doc_type",
+            "year",
+            "issuer",
+            "serial"
+          ],
+          "type": "object"
+        },
+        "meta": {
+          "fastmcp": {
+            "tags": []
+          }
+        },
+        "name": "hu_get_legislation",
+        "outputSchema": {
+          "additionalProperties": true,
+          "description": "A Hungarian piece of legislation resolved via its ELI URI.",
+          "properties": {
+            "dataset_note": {
+              "default": "Nemzeti Jogszabalytar (NJT) is Hungary's official, free-to-use national legislation database, maintained by MKIFK (Magyar Kozlonykiado es Igazsagugyi Forditokozpont Zrt.) at njt.jog.gov.hu. Hungary publishes a genuine, documented national ELI (European Legislation Identifier) URI scheme since 2023 (see /eli/urisemak). Each ELI URI resolves (HTTP 302) to a server-rendered HTML document page carrying the consolidated (currently-in-force, unless a historical date is requested) text of the act. There is no REST/JSON API and no headless full-text search - the search/browse UI is an AngularJS SPA that requires a session and JavaScript; documents must be addressed by a known ELI (type + year + serial, and an issuer code for non-Act types).",
+              "type": "string"
+            },
+            "doc_type": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "eli_uri": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "human_readable_citation": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "in_force_date": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "issuer": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "serial": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "source_url": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "subtitle": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "title": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "year": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            }
+          },
+          "type": "object"
+        }
+      },
+      "sha256": "f8d88b920b368720a3ae1071264142f93e3d09c4cc4dcadd2bbf073ed1fe8b0b"
+    },
+    "hu_get_text": {
+      "descriptor": {
+        "annotations": {
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": true,
+          "readOnlyHint": true
+        },
+        "description": "Fetch the full document HTML content of a Hungarian piece of legislation.\n\nFor Acts (torveny), pass `doc_type=\"TV\"` and omit `issuer`. For anything else, pass the\n`issuer` code (case-sensitive - use `hu_list_issuers`).",
+        "inputSchema": {
+          "additionalProperties": false,
+          "properties": {
+            "doc_type": {
+              "description": "NJT type code, e.g. ``\"TV\"`` (torveny / Act) or ``\"R\"`` (rendelet / decree).",
+              "type": "string"
+            },
+            "issuer": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "NJT issuer code, case-sensitive (required for everything except `\"TV\"`)."
+            },
+            "serial": {
+              "description": "the document's serial number within that year.",
+              "type": "string"
+            },
+            "year": {
+              "description": "4-digit year.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "doc_type",
+            "year",
+            "serial"
+          ],
+          "type": "object"
+        },
+        "meta": {
+          "fastmcp": {
+            "tags": []
+          }
+        },
+        "name": "hu_get_text",
+        "outputSchema": {
+          "additionalProperties": true,
+          "description": "Result of ``hu_get_text`` - the full document HTML/text of one act.",
+          "properties": {
+            "byte_size": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "content": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "dataset_note": {
+              "default": "Nemzeti Jogszabalytar (NJT) is Hungary's official, free-to-use national legislation database, maintained by MKIFK (Magyar Kozlonykiado es Igazsagugyi Forditokozpont Zrt.) at njt.jog.gov.hu. Hungary publishes a genuine, documented national ELI (European Legislation Identifier) URI scheme since 2023 (see /eli/urisemak). Each ELI URI resolves (HTTP 302) to a server-rendered HTML document page carrying the consolidated (currently-in-force, unless a historical date is requested) text of the act. There is no REST/JSON API and no headless full-text search - the search/browse UI is an AngularJS SPA that requires a session and JavaScript; documents must be addressed by a known ELI (type + year + serial, and an issuer code for non-Act types).",
+              "type": "string"
+            },
+            "doc_type": {
+              "type": "string"
+            },
+            "eli_uri": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "format": {
+              "default": "njt-html-fragment",
+              "type": "string"
+            },
+            "human_readable_citation": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "in_force_date": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "issuer": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "serial": {
+              "type": "string"
+            },
+            "source_url": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "subtitle": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "title": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "year": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "doc_type",
+            "year",
+            "serial"
+          ],
+          "type": "object"
+        }
+      },
+      "sha256": "6ede9e3dd82faba1ffb5a80eb4f7ca35db37e9a31b8b933d4bc29c3180bcf23f"
+    },
+    "hu_list_doc_types": {
+      "descriptor": {
+        "annotations": {
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": true,
+          "readOnlyHint": true
+        },
+        "description": "List valid NJT document-type codes (e.g. TV=Act, R=decree) from /eli/tipuskodok.\n\nReturns:\n    ``DocTypeList`` with ``items: list[DocTypeInfo]`` (code + Hungarian name).",
+        "inputSchema": {
+          "additionalProperties": false,
+          "properties": {},
+          "type": "object"
+        },
+        "meta": {
+          "fastmcp": {
+            "tags": []
+          }
+        },
+        "name": "hu_list_doc_types",
+        "outputSchema": {
+          "additionalProperties": true,
+          "description": "Result of ``hu_list_doc_types``.",
+          "properties": {
+            "dataset_note": {
+              "default": "Nemzeti Jogszabalytar (NJT) is Hungary's official, free-to-use national legislation database, maintained by MKIFK (Magyar Kozlonykiado es Igazsagugyi Forditokozpont Zrt.) at njt.jog.gov.hu. Hungary publishes a genuine, documented national ELI (European Legislation Identifier) URI scheme since 2023 (see /eli/urisemak). Each ELI URI resolves (HTTP 302) to a server-rendered HTML document page carrying the consolidated (currently-in-force, unless a historical date is requested) text of the act. There is no REST/JSON API and no headless full-text search - the search/browse UI is an AngularJS SPA that requires a session and JavaScript; documents must be addressed by a known ELI (type + year + serial, and an issuer code for non-Act types).",
+              "type": "string"
+            },
+            "items": {
+              "items": {
+                "additionalProperties": true,
+                "description": "One row of the NJT document-type code list (/eli/tipuskodok).",
+                "properties": {
+                  "code": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  }
+                },
+                "required": [
+                  "code"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "sha256": "1bebb15006cd5a71b007db31a46c5f92a4ec5947012b44acf5e4becf7527eb84"
+    },
+    "hu_list_issuers": {
+      "descriptor": {
+        "annotations": {
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": true,
+          "readOnlyHint": true
+        },
+        "description": "List valid NJT issuer codes (case-sensitive, e.g. Korm=Government) from /eli/kibocsatokodok.\n\nReturns:\n    ``IssuerList`` with ``items: list[IssuerInfo]`` (code + Hungarian name).",
+        "inputSchema": {
+          "additionalProperties": false,
+          "properties": {},
+          "type": "object"
+        },
+        "meta": {
+          "fastmcp": {
+            "tags": []
+          }
+        },
+        "name": "hu_list_issuers",
+        "outputSchema": {
+          "additionalProperties": true,
+          "description": "Result of ``hu_list_issuers``.",
+          "properties": {
+            "dataset_note": {
+              "default": "Nemzeti Jogszabalytar (NJT) is Hungary's official, free-to-use national legislation database, maintained by MKIFK (Magyar Kozlonykiado es Igazsagugyi Forditokozpont Zrt.) at njt.jog.gov.hu. Hungary publishes a genuine, documented national ELI (European Legislation Identifier) URI scheme since 2023 (see /eli/urisemak). Each ELI URI resolves (HTTP 302) to a server-rendered HTML document page carrying the consolidated (currently-in-force, unless a historical date is requested) text of the act. There is no REST/JSON API and no headless full-text search - the search/browse UI is an AngularJS SPA that requires a session and JavaScript; documents must be addressed by a known ELI (type + year + serial, and an issuer code for non-Act types).",
+              "type": "string"
+            },
+            "items": {
+              "items": {
+                "additionalProperties": true,
+                "description": "One row of the NJT issuer code list (/eli/kibocsatokodok).",
+                "properties": {
+                  "code": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  }
+                },
+                "required": [
+                  "code"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "sha256": "f2bc78b56ed029523c6a4a22839f36815af845cc97f9e7fe1e01ddd80b6d6826"
+    }
+  },
+  "toolset_sha256": "8af509b00e0e1b89de76c1222c865a55c454be076a11ea0e12ff42555b81de6a"
+}
