@@ -8,9 +8,12 @@ explicitly with:
 
 from __future__ import annotations
 
+import re
+
 import httpx
 import pytest
 
+from hu_eli_mcp.client import NjtClient
 from hu_eli_mcp.server import (
     ToolError,
     hu_get_act,
@@ -69,6 +72,7 @@ async def test_smoke_get_text():
     assert text.content and text.byte_size and text.byte_size > 100_000
     assert "jogszabalyMainTitle" in text.content
     assert text.eli_uri and text.human_readable_citation and text.source_url
+    assert 'class="pH borderStart"' not in text.content
 
 
 @pytest.mark.asyncio
@@ -103,3 +107,49 @@ async def test_smoke_list_issuers():
     assert result.items
     codes = {item.code for item in result.items}
     assert "Korm" in codes
+
+
+@pytest.mark.asyncio
+async def test_smoke_btk_lazy_loaded_sections_are_present():
+    """A large HTML response can still omit the Btk. after §338."""
+    _live_or_skip()
+    text = await hu_get_text("TV", "2012", "100")
+    assert text.content is not None
+    assert re.search(r'class="szakasz-jel">339\.\s*§', text.content)
+    assert re.search(r'class="szakasz-jel">465\.\s*§', text.content)
+    assert 'class="pH borderStart"' not in text.content
+
+
+@pytest.mark.asyncio
+async def test_smoke_debrecen_decree_annexes_are_not_lost():
+    """Local building regulation annexes can be deferred even after the last §."""
+    _live_or_skip()
+    url = "https://njt.jog.gov.hu/jogszabaly/2020-47-SP-5Y1578.72"
+    async with NjtClient() as client:
+        response = await client._http.get(url)
+        response.raise_for_status()
+        assert 'class="pH borderStart"' in response.text
+        complete = await client.load_complete_text(url, response.text)
+        assert 'class="pH borderStart"' not in complete
+        assert (
+            'id="sc2020-47-SP-5Y1578-8951" class="mellekletPont pslice"'
+            in complete
+        )
+
+
+@pytest.mark.asyncio
+async def test_smoke_short_act_without_placeholders_still_returns_text():
+    """A short law with nothing deferred must not trip the markup-change guard."""
+    _live_or_skip()
+    text = await hu_get_text("TV", "2010", "130")  # Jat., Act CXXX of 2010
+    assert text.content and "jogszabalyMainTitle" in text.content
+    assert 'class="pH borderStart"' not in text.content
+
+
+@pytest.mark.asyncio
+async def test_smoke_government_decree_annex_group_without_outer_id():
+    """314/2012. Korm. rendelet: NJT omits one placeholder's outer id in its response."""
+    _live_or_skip()
+    text = await hu_get_text("R", "2012", "314", issuer="Korm")
+    assert text.content and "13. melléklet a 314/2012" in text.content
+    assert 'class="pH borderStart"' not in text.content

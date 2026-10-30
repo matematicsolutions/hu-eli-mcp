@@ -14,20 +14,37 @@ live application domain is `njt.jog.gov.hu`**, discovered via web search (Hungar
 docs and case-law citations all point there). `njt.jog.gov.hu` is directly reachable
 (`Server: Apache`, `X-Powered-By: PHP/7.3.33`, HTTP 200/302/404 as expected, no WAF reset).
 
-## Shape: no REST/JSON API, native ELI + server-rendered HTML documents
+## Shape: native ELI, partially server-rendered HTML, deferred AJAX content
 
-`njt.jog.gov.hu` is an AngularJS SPA (`data-ng-app="njtAppX"`). Its internal AJAX endpoints
-(`/ajax/*.json`) require a session cookie (`__Secure-sessid`) and are not a documented public
-API - they are private frontend plumbing, not used by this connector. **Search and browse
-pages are client-rendered** (confirmed: `/search/torveny/1/10` and `/eli/TV/2015` both return
+`njt.jog.gov.hu` is an AngularJS SPA (`data-ng-app="njtAppX"`). Its internal AJAX
+endpoints are not documented public APIs. **Search and browse pages are
+client-rendered** (confirmed: `/search/torveny/1/10` and `/eli/TV/2015` both return
 200 with an empty AngularJS shell and zero server-rendered result links).
+However, the document-block endpoint `/ajax/njtGetBlock.json` was verified to
+work **without a session cookie** on 2026-10-30. `hu_get_text` uses it only to
+retrieve NJT's own deferred statutory and annex content.
 
-However, **the individual document page IS server-rendered HTML**, reachable with no
-JavaScript and no cookies:
+**Individual document pages are partially server-rendered HTML**, reachable with
+no JavaScript and no cookies, but **long laws need additional HTTP requests**:
 
-- `GET /jogszabaly/{doc_id}` (e.g. `/jogszabaly/2013-5-00-00`) returns HTTP 200 with the full
-  consolidated legal text inline (verified: 1900+ section markers for the Hungarian Civil
-  Code, 2013. evi V. torveny). A nonexistent `doc_id` returns a clean HTTP 404.
+- `GET /jogszabaly/{doc_id}` returns HTTP 200 with the beginning of the legal
+  text inline and, for longer documents, empty `div.pH.borderStart` placeholders
+  for later provisions or annexes. A nonexistent `doc_id` returns HTTP 404.
+- On 2026-10-30, the Btk. (`/eli/TV/2012/100`) initially ended its actual text
+  at §338; another 26 placeholder blocks included the later text through §465.
+- The Ptk. (`/eli/TV/2013/5`) had **78** deferred blocks. The original
+  observation of 1900+ section identifiers was **not evidence** of 1900+
+  actual inlined section bodies.
+- A Debrecen municipal building decree (47/2020, version `.72`) had two
+  deferred **annex** blocks. It is currently outside this connector's ELI scope.
+- NJT's frontend loads deferred blocks via `POST /ajax/njtGetBlock.json`, with
+  `{"documentId": "2012-100-00-00", "data": [{"start": 2943}]}` for the first
+  Btk. range. The reply is an HTML fragment, despite the `.json` path.
+  The full block list can be batched into a single request. This is an
+  undocumented implementation detail, not a supported public API.
+
+See [the full reproduction](docs/njt-deferred-content.md), including exact
+URLs, response sizes, and the local-decree annex example.
 - **Hungary has a genuine, documented native ELI implementation since 2023**
   (`https://njt.jog.gov.hu/eli/urisemak`, "Hazai ELI URI semak" — the national ELI URI schema
   page). ELI URIs resolve with an HTTP 302 redirect to the `/jogszabaly/{doc_id}` page:
@@ -87,8 +104,8 @@ substitute identifier.
 - `hu_get_act(year, serial)` — resolves `/eli/TV/{year}/{serial}`, the citation contract.
 - `hu_get_legislation(doc_type, year, issuer, serial)` — resolves
   `/eli/{doc_type}/{year}/{issuer}/{serial}` for anything other than Acts.
-- `hu_get_text(doc_type, year, serial, issuer=None)` — same resolution, returns the full
-  document HTML content.
+- `hu_get_text(doc_type, year, serial, issuer=None)` — same resolution, fetches
+  all NJT deferred blocks and returns reconstructed complete HTML or an error.
 - `hu_list_doc_types()` — parses `/eli/tipuskodok`.
 - `hu_list_issuers()` — parses `/eli/kibocsatokodok` (note the case-sensitivity of codes).
 

@@ -19,15 +19,15 @@ import re
 from fastmcp import FastMCP
 from mcp.types import ToolAnnotations
 
+from . import runtime
 from .audit import AuditLogger, hash_input, timer
 from .citations import human_readable_citation, parse_code_table, parse_document_page
-from . import runtime
 from .client import DEFAULT_BASE_URL, HuError, HuNotFoundError, NjtClient
-from .models import DocTypeInfo, DocTypeList, IssuerInfo, IssuerList, Legislation, LegislationText
 from .coverage import Coverage, build_coverage
+from .models import DocTypeInfo, DocTypeList, IssuerInfo, IssuerList, Legislation, LegislationText
 
 INSTRUCTIONS = """\
-This MCP server exposes Hungary's official national legislation database, the Nemzeti Jogszabalytar (NJT, njt.jog.gov.hu), maintained by MKIFK. It has NO REST/JSON API - the search/browse UI is a JavaScript SPA that requires a session and is not usable headlessly. Instead, this server resolves Hungary's genuine, documented national ELI (European Legislation Identifier) URI scheme (published since 2023, see njt.jog.gov.hu/eli/urisemak) and fetches the resulting server-rendered document page. Every response carries a stable `eli_uri` (a real, native ELI - never fabricated), a `human_readable_citation` and a `source_url` (the citation contract).
+This MCP server exposes Hungary's official national legislation database, the Nemzeti Jogszabalytar (NJT, njt.jog.gov.hu), maintained by MKIFK. It has no documented public REST/JSON API - the search/browse UI is a JavaScript SPA that requires a session and is not usable headlessly. Instead, this server resolves Hungary's genuine, documented national ELI (European Legislation Identifier) URI scheme (published since 2023, see njt.jog.gov.hu/eli/urisemak) and fetches the resulting server-rendered document page. Every response carries a stable `eli_uri` (a real, native ELI - never fabricated), a `human_readable_citation` and a `source_url` (the citation contract).
 
 ## No free-text search
 
@@ -37,13 +37,13 @@ There is no headless full-text or title search. Documents must be addressed by a
 
 - Acts (torveny): `hu_get_act(year, serial)` -> ELI `/eli/TV/{year}/{serial}`.
 - Everything else: `hu_get_legislation(doc_type, year, issuer, serial)` -> ELI `/eli/{doc_type}/{year}/{issuer}/{serial}`. **The issuer code is case-sensitive** (e.g. `Korm` for Government decrees, not `KORM` - use `hu_list_issuers` to get the exact casing).
-- `hu_get_text` fetches the same document but returns the full HTML content (large; may be 100 KB-2 MB), not just metadata.
+- `hu_get_text` fetches complete document HTML, including deferred sections and annexes loaded via NJT's internal AJAX endpoint. Do not assume an ELI redirect or large initial HTML is complete.
 
 ## Call order
 
 1. `hu_list_doc_types` / `hu_list_issuers` - discover valid type/issuer codes if unknown.
 2. `hu_get_act(year, serial)` or `hu_get_legislation(doc_type, year, issuer, serial)` - metadata: `eli_uri`, `title`, `subtitle`, `in_force_date`, `human_readable_citation`, `source_url`.
-3. `hu_get_text(...)` - the full document HTML content, same identifying parameters.
+3. `hu_get_text(...)` - complete HTML, reconstructing lazy-loaded NJT content where needed.
 
 ## Hard constraints
 
@@ -262,7 +262,11 @@ async def hu_get_legislation(doc_type: str, year: str, issuer: str, serial: str)
 async def hu_get_text(
     doc_type: str, year: str, serial: str, issuer: str | None = None
 ) -> LegislationText:
-    """Fetch the full document HTML content of a Hungarian piece of legislation.
+    """Fetch complete legislation HTML, including NJT's deferred blocks.
+
+    The result can be very large (the Civil Code is about 3 MB of HTML). Check
+    `byte_size`: if your client truncates tool results, the text you see is not the
+    whole law, so do not conclude that a section is absent from what you received.
 
     For Acts (torveny), pass `doc_type="TV"` and omit `issuer`. For anything else, pass the
     `issuer` code (case-sensitive - use `hu_list_issuers`).
@@ -296,6 +300,7 @@ async def hu_get_text(
         try:
             async with NjtClient(base_url=_base_url()) as client:
                 source_url, html = await client.resolve_eli(eli_path)
+                html = await client.load_complete_text(source_url, html)
         except Exception as exc:
             audit.log(tool="hu_get_text", input_hash=input_hash, output_count_or_size=0,
                       duration_ms=t.duration_ms if t.duration_ms else 0, status="error",

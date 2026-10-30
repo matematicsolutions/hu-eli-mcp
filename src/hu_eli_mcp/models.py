@@ -9,9 +9,9 @@ DATASET_NOTE = (
     "database, maintained by MKIFK (Magyar Kozlonykiado es Igazsagugyi Forditokozpont Zrt.) "
     "at njt.jog.gov.hu. Hungary publishes a genuine, documented national ELI (European "
     "Legislation Identifier) URI scheme since 2023 (see /eli/urisemak). Each ELI URI resolves "
-    "(HTTP 302) to a server-rendered HTML document page carrying the consolidated "
-    "(currently-in-force, unless a historical date is requested) text of the act. There is no "
-    "REST/JSON API and no headless full-text search - the search/browse UI is an AngularJS SPA "
+    "(HTTP 302) to a partially server-rendered HTML page. Large acts may include deferred "
+    "statutory or annex blocks; hu_get_text reconstructs them via NJT internal AJAX requests. "
+    "There is no documented public REST/JSON search API; the search/browse UI is an AngularJS SPA "
     "that requires a session and JavaScript; documents must be addressed by a known ELI "
     "(type + year + serial, and an issuer code for non-Act types)."
 )

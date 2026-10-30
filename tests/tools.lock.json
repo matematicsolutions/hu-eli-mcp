@@ -1,5 +1,5 @@
 {
-  "package_version": "0.3.3",
+  "package_version": "0.3.4",
   "tools": {
     "hu_coverage": {
       "descriptor": {
@@ -162,7 +162,7 @@
           "description": "A Hungarian piece of legislation resolved via its ELI URI.",
           "properties": {
             "dataset_note": {
-              "default": "Nemzeti Jogszabalytar (NJT) is Hungary's official, free-to-use national legislation database, maintained by MKIFK (Magyar Kozlonykiado es Igazsagugyi Forditokozpont Zrt.) at njt.jog.gov.hu. Hungary publishes a genuine, documented national ELI (European Legislation Identifier) URI scheme since 2023 (see /eli/urisemak). Each ELI URI resolves (HTTP 302) to a server-rendered HTML document page carrying the consolidated (currently-in-force, unless a historical date is requested) text of the act. There is no REST/JSON API and no headless full-text search - the search/browse UI is an AngularJS SPA that requires a session and JavaScript; documents must be addressed by a known ELI (type + year + serial, and an issuer code for non-Act types).",
+              "default": "Nemzeti Jogszabalytar (NJT) is Hungary's official, free-to-use national legislation database, maintained by MKIFK (Magyar Kozlonykiado es Igazsagugyi Forditokozpont Zrt.) at njt.jog.gov.hu. Hungary publishes a genuine, documented national ELI (European Legislation Identifier) URI scheme since 2023 (see /eli/urisemak). Each ELI URI resolves (HTTP 302) to a partially server-rendered HTML page. Large acts may include deferred statutory or annex blocks; hu_get_text reconstructs them via NJT internal AJAX requests. There is no documented public REST/JSON search API; the search/browse UI is an AngularJS SPA that requires a session and JavaScript; documents must be addressed by a known ELI (type + year + serial, and an issuer code for non-Act types).",
               "type": "string"
             },
             "doc_type": {
@@ -279,7 +279,7 @@
           "type": "object"
         }
       },
-      "sha256": "e40e7d7b410edb0cd34865c1517e1ee0d28fe837d3b25164d563d2a61e61fa45"
+      "sha256": "b4386dbdee7dcd17c4f1a95bcd5b25005ea9bd7f5aeb835c5b491b2047771aab"
     },
     "hu_get_legislation": {
       "descriptor": {
@@ -329,7 +329,7 @@
           "description": "A Hungarian piece of legislation resolved via its ELI URI.",
           "properties": {
             "dataset_note": {
-              "default": "Nemzeti Jogszabalytar (NJT) is Hungary's official, free-to-use national legislation database, maintained by MKIFK (Magyar Kozlonykiado es Igazsagugyi Forditokozpont Zrt.) at njt.jog.gov.hu. Hungary publishes a genuine, documented national ELI (European Legislation Identifier) URI scheme since 2023 (see /eli/urisemak). Each ELI URI resolves (HTTP 302) to a server-rendered HTML document page carrying the consolidated (currently-in-force, unless a historical date is requested) text of the act. There is no REST/JSON API and no headless full-text search - the search/browse UI is an AngularJS SPA that requires a session and JavaScript; documents must be addressed by a known ELI (type + year + serial, and an issuer code for non-Act types).",
+              "default": "Nemzeti Jogszabalytar (NJT) is Hungary's official, free-to-use national legislation database, maintained by MKIFK (Magyar Kozlonykiado es Igazsagugyi Forditokozpont Zrt.) at njt.jog.gov.hu. Hungary publishes a genuine, documented national ELI (European Legislation Identifier) URI scheme since 2023 (see /eli/urisemak). Each ELI URI resolves (HTTP 302) to a partially server-rendered HTML page. Large acts may include deferred statutory or annex blocks; hu_get_text reconstructs them via NJT internal AJAX requests. There is no documented public REST/JSON search API; the search/browse UI is an AngularJS SPA that requires a session and JavaScript; documents must be addressed by a known ELI (type + year + serial, and an issuer code for non-Act types).",
               "type": "string"
             },
             "doc_type": {
@@ -446,7 +446,7 @@
           "type": "object"
         }
       },
-      "sha256": "f8d88b920b368720a3ae1071264142f93e3d09c4cc4dcadd2bbf073ed1fe8b0b"
+      "sha256": "b784699d6bf8b2dfd3d68c8fec8d815e35aa7c0763be72f3297298a3efc5c52c"
     },
     "hu_get_text": {
       "descriptor": {
@@ -456,7 +456,7 @@
           "openWorldHint": true,
           "readOnlyHint": true
         },
-        "description": "Fetch the full document HTML content of a Hungarian piece of legislation.\n\nFor Acts (torveny), pass `doc_type=\"TV\"` and omit `issuer`. For anything else, pass the\n`issuer` code (case-sensitive - use `hu_list_issuers`).",
+        "description": "Fetch complete legislation HTML, including NJT's deferred blocks.\n\nThe result can be very large (the Civil Code is about 3 MB of HTML). Check\n`byte_size`: if your client truncates tool results, the text you see is not the\nwhole law, so do not conclude that a section is absent from what you received.\n\nFor Acts (torveny), pass `doc_type=\"TV\"` and omit `issuer`. For anything else, pass the\n`issuer` code (case-sensitive - use `hu_list_issuers`).",
         "inputSchema": {
           "additionalProperties": false,
           "properties": {
@@ -525,7 +525,7 @@
               "default": null
             },
             "dataset_note": {
-              "default": "Nemzeti Jogszabalytar (NJT) is Hungary's official, free-to-use national legislation database, maintained by MKIFK (Magyar Kozlonykiado es Igazsagugyi Forditokozpont Zrt.) at njt.jog.gov.hu. Hungary publishes a genuine, documented national ELI (European Legislation Identifier) URI scheme since 2023 (see /eli/urisemak). Each ELI URI resolves (HTTP 302) to a server-rendered HTML document page carrying the consolidated (currently-in-force, unless a historical date is requested) text of the act. There is no REST/JSON API and no headless full-text search - the search/browse UI is an AngularJS SPA that requires a session and JavaScript; documents must be addressed by a known ELI (type + year + serial, and an issuer code for non-Act types).",
+              "default": "Nemzeti Jogszabalytar (NJT) is Hungary's official, free-to-use national legislation database, maintained by MKIFK (Magyar Kozlonykiado es Igazsagugyi Forditokozpont Zrt.) at njt.jog.gov.hu. Hungary publishes a genuine, documented national ELI (European Legislation Identifier) URI scheme since 2023 (see /eli/urisemak). Each ELI URI resolves (HTTP 302) to a partially server-rendered HTML page. Large acts may include deferred statutory or annex blocks; hu_get_text reconstructs them via NJT internal AJAX requests. There is no documented public REST/JSON search API; the search/browse UI is an AngularJS SPA that requires a session and JavaScript; documents must be addressed by a known ELI (type + year + serial, and an issuer code for non-Act types).",
               "type": "string"
             },
             "doc_type": {
@@ -627,7 +627,7 @@
           "type": "object"
         }
       },
-      "sha256": "6ede9e3dd82faba1ffb5a80eb4f7ca35db37e9a31b8b933d4bc29c3180bcf23f"
+      "sha256": "b4f348ea31a1ab48c04d24fd604c385a2e8e256b7771163c2891ff9a5124388d"
     },
     "hu_list_doc_types": {
       "descriptor": {
@@ -654,7 +654,7 @@
           "description": "Result of ``hu_list_doc_types``.",
           "properties": {
             "dataset_note": {
-              "default": "Nemzeti Jogszabalytar (NJT) is Hungary's official, free-to-use national legislation database, maintained by MKIFK (Magyar Kozlonykiado es Igazsagugyi Forditokozpont Zrt.) at njt.jog.gov.hu. Hungary publishes a genuine, documented national ELI (European Legislation Identifier) URI scheme since 2023 (see /eli/urisemak). Each ELI URI resolves (HTTP 302) to a server-rendered HTML document page carrying the consolidated (currently-in-force, unless a historical date is requested) text of the act. There is no REST/JSON API and no headless full-text search - the search/browse UI is an AngularJS SPA that requires a session and JavaScript; documents must be addressed by a known ELI (type + year + serial, and an issuer code for non-Act types).",
+              "default": "Nemzeti Jogszabalytar (NJT) is Hungary's official, free-to-use national legislation database, maintained by MKIFK (Magyar Kozlonykiado es Igazsagugyi Forditokozpont Zrt.) at njt.jog.gov.hu. Hungary publishes a genuine, documented national ELI (European Legislation Identifier) URI scheme since 2023 (see /eli/urisemak). Each ELI URI resolves (HTTP 302) to a partially server-rendered HTML page. Large acts may include deferred statutory or annex blocks; hu_get_text reconstructs them via NJT internal AJAX requests. There is no documented public REST/JSON search API; the search/browse UI is an AngularJS SPA that requires a session and JavaScript; documents must be addressed by a known ELI (type + year + serial, and an issuer code for non-Act types).",
               "type": "string"
             },
             "items": {
@@ -688,7 +688,7 @@
           "type": "object"
         }
       },
-      "sha256": "1bebb15006cd5a71b007db31a46c5f92a4ec5947012b44acf5e4becf7527eb84"
+      "sha256": "9e3af5f3b8dc721a780749a61f091c69775643c6037fd5dc40c73f80adf6d765"
     },
     "hu_list_issuers": {
       "descriptor": {
@@ -715,7 +715,7 @@
           "description": "Result of ``hu_list_issuers``.",
           "properties": {
             "dataset_note": {
-              "default": "Nemzeti Jogszabalytar (NJT) is Hungary's official, free-to-use national legislation database, maintained by MKIFK (Magyar Kozlonykiado es Igazsagugyi Forditokozpont Zrt.) at njt.jog.gov.hu. Hungary publishes a genuine, documented national ELI (European Legislation Identifier) URI scheme since 2023 (see /eli/urisemak). Each ELI URI resolves (HTTP 302) to a server-rendered HTML document page carrying the consolidated (currently-in-force, unless a historical date is requested) text of the act. There is no REST/JSON API and no headless full-text search - the search/browse UI is an AngularJS SPA that requires a session and JavaScript; documents must be addressed by a known ELI (type + year + serial, and an issuer code for non-Act types).",
+              "default": "Nemzeti Jogszabalytar (NJT) is Hungary's official, free-to-use national legislation database, maintained by MKIFK (Magyar Kozlonykiado es Igazsagugyi Forditokozpont Zrt.) at njt.jog.gov.hu. Hungary publishes a genuine, documented national ELI (European Legislation Identifier) URI scheme since 2023 (see /eli/urisemak). Each ELI URI resolves (HTTP 302) to a partially server-rendered HTML page. Large acts may include deferred statutory or annex blocks; hu_get_text reconstructs them via NJT internal AJAX requests. There is no documented public REST/JSON search API; the search/browse UI is an AngularJS SPA that requires a session and JavaScript; documents must be addressed by a known ELI (type + year + serial, and an issuer code for non-Act types).",
               "type": "string"
             },
             "items": {
@@ -749,8 +749,8 @@
           "type": "object"
         }
       },
-      "sha256": "f2bc78b56ed029523c6a4a22839f36815af845cc97f9e7fe1e01ddd80b6d6826"
+      "sha256": "1ec73f23323346da986f04cd89d8eab1cffaea9408e25bee583b3438012feed1"
     }
   },
-  "toolset_sha256": "8af509b00e0e1b89de76c1222c865a55c454be076a11ea0e12ff42555b81de6a"
+  "toolset_sha256": "72e350cb71a614c9cba3c112cab530594fcec2ed4a8c08a803ba4565931d9468"
 }

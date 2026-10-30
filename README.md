@@ -22,7 +22,7 @@ member state, the same citation contract everywhere.
 |---|---|
 | `hu_get_act(year, serial)` | Metadata for a Hungarian Act (torveny) by ELI, e.g. year `2013`, serial `5` (the Civil Code). No issuer code needed. |
 | `hu_get_legislation(doc_type, year, issuer, serial)` | Metadata for any other legislation (decrees etc.) by ELI — type, year, issuer (case-sensitive) and serial. |
-| `hu_get_text(doc_type, year, serial, issuer=None)` | The full document HTML content for either an Act or other legislation. |
+| `hu_get_text(doc_type, year, serial, issuer=None)` | Complete NJT document HTML, including statutory and annex blocks loaded separately by NJT. |
 | `hu_list_doc_types()` | Valid NJT document-type codes (e.g. `TV`=Act, `R`=decree). |
 | `hu_list_issuers()` | Valid NJT issuer codes (e.g. `Korm`=Government) — note the exact casing matters. |
 | `hu_coverage()` | Declare what this connector covers, when each family was captured, and - explicitly - what it does NOT cover. Every gap carries a fallback. |
@@ -34,9 +34,26 @@ Every response carries the **citation contract**:
   *"2013. évi V. törvény (a Polgári Törvénykönyvről)"*.
 - `source_url` — the browsable `njt.jog.gov.hu/jogszabaly/...` document page.
 
+### NJT lazy-loads long laws and annexes
+
+The ELI URI resolves correctly, but **the initial server-rendered HTML may be incomplete**.
+NJT fills placeholder blocks via its undocumented frontend endpoint
+`POST /ajax/njtGetBlock.json` when the browser scrolls. The initial Btk.
+(Act C of 2012) HTML ends its real statutory text at §338 even though it
+contains later provision references in footnotes. The Hungarian Civil Code
+(Ptk.) also has deferred sections, and the Debrecen municipal building
+regulation has deferred annex content.
+
+`hu_get_text` now reconstructs these missing blocks before reporting a
+successful result, and fails with an upstream error if they cannot be obtained.
+`hu_get_act` and `hu_get_legislation` remain metadata-only. The private NJT
+endpoint is not a stable, documented API and may require future maintenance.
+See [NJT deferred-content investigation](docs/njt-deferred-content.md) for
+reproduction commands, actual request payloads, and test results.
+
 ### No free-text search
 
-NJT has no REST/JSON API and its search/browse UI is a JavaScript SPA requiring a session
+NJT has no documented public search REST/JSON API and its search/browse UI is a JavaScript SPA requiring a session
 (not usable headlessly). Documents must be addressed by a **known ELI** — use
 `hu_list_doc_types` / `hu_list_issuers` to discover valid codes, then `hu_get_act` /
 `hu_get_legislation`. An unresolvable ELI (wrong year/serial/issuer, or wrong issuer-code
@@ -98,8 +115,9 @@ without reinstalling Windows.
 
 ## Design
 
-- **Public data only.** Read-only against the keyless, official `njt.jog.gov.hu`; nothing is
-  sent beyond the ELI path being resolved. Honors `robots.txt` (never calls `/search/*`).
+- **Public data only.** Read-only against the keyless, official `njt.jog.gov.hu`. Full-text
+  retrieval also sends document IDs and missing block ranges to NJT's own internal AJAX endpoint;
+  no user-provided legal text is uploaded. Honors `robots.txt` (never calls `/search/*`).
 - **Audit log.** Every call appends one JSON line to `~/.matematic/audit/hu-eli-mcp.jsonl`
   (record-keeping).
 - **Network** - the server talks to the official source(s) named above and the local
